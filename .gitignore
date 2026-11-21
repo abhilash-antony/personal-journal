@@ -1,0 +1,20 @@
+# App
+__pycache__/
+*.pyc
+.env
+.env.local
+.venv/
+node_modules/
+.next/
+out/
+dist/
+.DS_Store
+Thumbs.db
+*.log
+
+# Data (contains your encrypted journal — back up separately!)
+data/uploads/*
+!data/uploads/.gitkeep
+data/entries/*
+!data/entries/.gitkeep
+data/index.json
