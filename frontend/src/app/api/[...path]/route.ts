@@ -6,8 +6,8 @@ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 async function proxy(req: Request) {
   const url = new URL(req.url);
-  const path = url.pathname.replace(/^\/api/, "");
-  const target = `${API}${path}${url.search}`;
+  const path = url.pathname.replace(/^\/api/, "") || "/";
+  const target = `${API}/api${path}${url.search}`;
 
   const headers: Record<string, string> = {};
   const auth = req.headers.get("authorization");

@@ -38,13 +38,28 @@ export default function HomePage() {
   }, []);
 
   const fetchEntries = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setEntries([]);
+      window.location.href = "/login";
+      return;
+    }
     const params = new URLSearchParams();
     if (searchQ) params.set("q", searchQ);
     if (activeTag) params.set("tag", activeTag);
     if (activeMood) params.set("mood", activeMood);
-    const token = localStorage.getItem("token") || "";
-    const data = await fetch(`/api/entries?${params.toString()}`, { headers: { Authorization: `Bearer ${token}` } as Record<string, string> }).then(r => r.json());
-    setEntries(data);
+    try {
+      const res = await fetch(`/api/entries?${params.toString()}`, { headers: { Authorization: `Bearer ${token}` } as Record<string, string> });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+        return;
+      }
+      const data = await res.json();
+      setEntries(Array.isArray(data) ? data : []);
+    } catch {
+      setEntries([]);
+    }
   }, [searchQ, activeTag, activeMood]);
 
   useEffect(() => { fetchEntries(); }, [fetchEntries]);
@@ -57,8 +72,14 @@ export default function HomePage() {
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this entry permanently?")) return;
-    const token = localStorage.getItem("token") || "";
-    await fetch(`/api/entries/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } as Record<string, string> });
+    const token = localStorage.getItem("token");
+    if (!token) { window.location.href = "/login"; return; }
+    const res = await fetch(`/api/entries/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } as Record<string, string> });
+    if (res.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+      return;
+    }
     fetchEntries();
   }
 
